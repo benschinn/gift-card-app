@@ -1,4 +1,4 @@
-# Example Gift Card
+# Example Gift Card App
 
 Many small businesses have taken a hit due to the COVID-19 outbreak. One way to help support local businesses is purchasing gift cards.
 
