@@ -16,7 +16,7 @@ This example application attempts to solve this problem by using Stripe payment 
 ## To Run
 Download the `gift-card-app` binary and run it like so:
 ```
- NAME=BUSINESSNAME SITEID=64756a71-b216-4da0-b16a-c8becfcf7a22 APIKEY=your-api-key PORT=3000 ./gift-card-app 
+ NAME=BUSINESSNAME SITEID=your-site-id APIKEY=your-api-key PORT=3000 ./gift-card-app 
  ```
 
 ## Environment Variables
