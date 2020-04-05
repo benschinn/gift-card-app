@@ -3,9 +3,12 @@ package main
 import (
     "os"
     "fmt"
-    "net/http"
     "html/template"
     "net/http"
+    "net/url"
+    "net/http/httputil"
+    "bytes"
+    "io/ioutil"
 )
 
 type Page struct {
@@ -58,7 +61,7 @@ func giftcardPage(w http.ResponseWriter, r *http.Request) {
   t.Execute(w, data)
 }
 
-func redeemGiftCard(code string) {
+func redeemGiftCard(code string, payload string) *http.Response{
   client := &http.Client{}
   requestURL := url.URL{
     Scheme: "https",
@@ -70,8 +73,29 @@ func redeemGiftCard(code string) {
     "Accept":          {"*/*"},
     "Content-Type":    {"application/json"},
     "Accept-Language": {"en-US,en;q=0.9"},
-    "Authorization":   {os.Getenv("API-KEY")}
+    "Authorization":   {"bearer " + os.Getenv("API-KEY")},
   }
+
+  jsonBody := []byte(payload)
+
+  request := http.Request{
+    Method:        "POST",
+    URL:           &requestURL,
+    Header:        requestHeaders,
+    Body:          ioutil.NopCloser(bytes.NewReader(jsonBody)),
+    ContentLength: int64(len(jsonBody)),
+  }
+
+  dump, err := httputil.DumpRequest(&request, true)
+  if err != nil {
+    fmt.Println("dump err", err.Error())
+  }
+
+  fmt.Println("******** REQUEST ********")
+  fmt.Println(string(dump))
+
+  resp, err := client.Do(&request)
+  return resp
 }
 
 func main() {
