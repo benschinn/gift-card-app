@@ -25,4 +25,10 @@ Download the `gift-card-app` binary and run it like so:
 3. Port - port number you wish to run the app on e.g. if you don't provide a PORT number just go to http://localhost:8090
 4. API Key - Generate GiftUp API Key from https://giftup.app/integrations/api-keys
 
-...more info to come
+## FAQ
+
+### Can this integrate with my POS System
+As of now, no. This is designed to be a separate system, and a temporary solution during the COVID-19 crisis.
+
+### Why is this program written in Go?
+This application isn't designed to be solution for all businesses, but merely a simple example. Go language was chosen as it outputs a binary executable that is portable and can be run anywhere (no npm, gem, jvm, etc. needed).
