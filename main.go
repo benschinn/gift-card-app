@@ -9,6 +9,7 @@ import (
     "net/http/httputil"
     "bytes"
     "io/ioutil"
+    "encoding/json"
 )
 
 type PageData struct {
@@ -43,8 +44,14 @@ func landingPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func redeemPage(w http.ResponseWriter, r *http.Request) {
-  const tmpl = `<div>redeem</div> `
-  t,err := template.New("landing").Parse(startTmpl + tmpl + endTmpl)
+  const tmpl = `
+  <form style="display:flex;align-items:flex-start;flex-direction:column;">
+    <input type="text" placeholder="code"/>
+    <input type="number" placeholder="amount"/>
+    <textarea placeholder="reason"></textarea>
+  </form>
+  `
+  t,err := template.New("redeem").Parse(startTmpl + tmpl + endTmpl)
   if err != nil {
     fmt.Println("error parsing html template")
   }
@@ -63,22 +70,38 @@ func giftcardPage(w http.ResponseWriter, r *http.Request) {
   t.Execute(w, data)
 }
 
-func redeemGiftCard(code string, payload string) *http.Response{
+func redeemGiftCard(w http.ResponseWriter, r *http.Request) {
+  rBody, err := ioutil.ReadAll(r.Body)
+  if err != nil {
+    fmt.Fprintf(w, "error reading request body")
+  }
+  type ReqBody struct {
+    Code string
+    Amount int64
+    Reason string
+  }
+  var reqBody =  []ReqBody 
+  err := json.Unmarshal(rBody, &reqBody)
+  if err != nil {
+    fmt.Println("error unmarshalling req body:", err)
+  }
+
   client := &http.Client{}
+
   requestURL := url.URL{
     Scheme: "https",
     Host:   "api.giftup.app",
-    Path:   "/gift-cards" + code + "/redeem",
+    Path:   "/gift-cards/" + reqBody[0].Code + "/redeem",
   }
 
   requestHeaders := http.Header{
     "Accept":          {"*/*"},
     "Content-Type":    {"application/json"},
     "Accept-Language": {"en-US,en;q=0.9"},
-    "Authorization":   {"bearer " + os.Getenv("API-KEY")},
+    "Authorization":   {"bearer " + os.Getenv("APIKEY")},
   }
 
-  jsonBody := []byte(payload)
+  jsonBody := []byte(`{"amount:"` + reqBody[0].Amount + `,"reason": "` + reqBody[0].Reason + `"}`)
 
   request := http.Request{
     Method:        "POST",
@@ -97,7 +120,8 @@ func redeemGiftCard(code string, payload string) *http.Response{
   fmt.Println(string(dump))
 
   resp, err := client.Do(&request)
-  return resp
+  fmt.Println(resp)
+  json.NewEncoder(w).Encode(resp)
 }
 
 func main() {
@@ -108,5 +132,6 @@ func main() {
   http.HandleFunc("/", landingPage)
   http.HandleFunc("/redeem", redeemPage)
   http.HandleFunc("/giftcards", giftcardPage)
+  http.HandleFunc("/redeem-gift-card", redeemGiftCard)
   http.ListenAndServe(":" + port, nil)
 }
